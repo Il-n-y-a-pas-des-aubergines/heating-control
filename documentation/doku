@@ -30,10 +30,11 @@ insgesamt 16
 -rw-r--r-- 1 christian users 13312 15. Mai 17:02 heizung.dbf
 
 
-christian@linux-qo6d:~/GIT/heating-control> git add -N website/
-cgi-bin/ data/    
 
-christian@linux-qo6d:~/GIT/heating-control> git add -N website/cgi-bin/
+
+*** neue Datei markieren, wird noch nicht hinzu gefügt
+
+> git add -N website/cgi-bin/
 christian@linux-qo6d:~/GIT/heating-control> git status
 # Auf Branch master
 # zum Commit vorgemerkte Änderungen:
@@ -51,4 +52,96 @@ christian@linux-qo6d:~/GIT/heating-control> git status
 #   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
 #
 #       website/data/
+
+
+
+christian@linux-qo6d:~/GIT/heating-control> git status
+# Auf Branch master
+# zum Commit vorgemerkte Änderungen:
+#   (benutzen Sie "git reset HEAD <Datei>..." zum Entfernen aus der Staging-Area)
+#
+#       neue Datei:   website/cgi-bin/heizung.cgi
+#
+# Änderungen, die nicht zum Commit vorgemerkt sind:
+#   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
+#   (benutzen Sie "git checkout -- <Datei>..." um die Änderungen im Arbeitsverzeichnis zu verwerfen)
+#
+#       geändert:   website/cgi-bin/heizung.cgi
+#
+# Unbeobachtete Dateien:
+#   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
+#
+#       documentation/
+#       website/data/
+
+
+
+christian@linux-qo6d:~/GIT/heating-control> git add documentation/
+christian@linux-qo6d:~/GIT/heating-control> git status
+# Auf Branch master
+# zum Commit vorgemerkte Änderungen:
+#   (benutzen Sie "git reset HEAD <Datei>..." zum Entfernen aus der Staging-Area)
+#
+#       neue Datei:   documentation/doku
+#       neue Datei:   website/cgi-bin/heizung.cgi
+#
+# Änderungen, die nicht zum Commit vorgemerkt sind:
+#   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
+#   (benutzen Sie "git checkout -- <Datei>..." um die Änderungen im Arbeitsverzeichnis zu verwerfen)
+#
+#       geändert:   website/cgi-bin/heizung.cgi
+#
+# Unbeobachtete Dateien:
+#   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
+#
+#       website/data/
+christian@linux-qo6d:~/GIT/heating-control> git add website/
+christian@linux-qo6d:~/GIT/heating-control> git status
+# Auf Branch master
+# zum Commit vorgemerkte Änderungen:
+#   (benutzen Sie "git reset HEAD <Datei>..." zum Entfernen aus der Staging-Area)
+#
+#       neue Datei:   documentation/doku
+#       neue Datei:   website/cgi-bin/heizung.cgi
+#       neue Datei:   website/data/README
+#
+
+
+
+christian@linux-qo6d:~/GIT/heating-control> git commit -m "Heizungssteuerung neu aufgenommen"
+[master 5d3d480] Heizungssteuerung neu aufgenommen
+ Committer: Christian Merz <christian@linux-qo6d.site>
+Ihr Name und E-Mail Adresse wurden automatisch auf Basis
+Ihres Benutzer- und Rechnernamens konfiguriert. Bitte prüfen Sie, dass
+diese zutreffend sind. Sie können diese Meldung unterdrücken, indem Sie
+diese explizit setzen:
+
+    git config --global user.name "Ihr Name"
+    git config --global user.email ihre@emailadresse.de
+
+Nachdem Sie das getan hast, können Sie Ihre Identität für diesen Commit ändern mit:
+
+    git commit --amend --reset-author
+
+ 3 files changed, 657 insertions(+)
+ create mode 100644 documentation/doku
+ create mode 100755 website/cgi-bin/heizung.cgi
+ create mode 100644 website/data/README
+
+
+christian@linux-qo6d:~/GIT/heating-control> git config --global user.name "Christian Merz"
+christian@linux-qo6d:~/GIT/heating-control> git config --global user.email christian@mesmerhaus.de
+christian@linux-qo6d:~/GIT/heating-control> git commit --amend --reset-author
+[master 20fa635] Heizungssteuerung neu aufgenommen
+ 3 files changed, 657 insertions(+)
+ create mode 100644 documentation/doku
+ create mode 100755 website/cgi-bin/heizung.cgi
+ create mode 100644 website/data/README
+
+
+
+
+christian@linux-qo6d:~/GIT/heating-control> git log
+christian@linux-qo6d:~/GIT/heating-control> git log --oneline
+christian@linux-qo6d:~/GIT/heating-control> git log --oneline --graph --decorate
 
