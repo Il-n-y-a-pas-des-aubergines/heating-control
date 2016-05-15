@@ -1,0 +1,54 @@
+
+~/GIT> git clone https://github.com/Il-n-y-a-pas-des-aubergines/heating-control
+Klone nach 'heating-control'...
+remote: Counting objects: 3, done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+Unpacking objects: 100% (3/3), done.
+Prüfe Konnektivität... Fertig
+
+
+
+christian@linux-qo6d:~/GIT> cd heating-control/
+christian@linux-qo6d:~/GIT/heating-control> git branch
+* master
+
+
+ 
+christian@linux-qo6d:~/GIT/heating-control> cp -r /srv/www/heating-control/website .
+christian@linux-qo6d:~/GIT/heating-control> ll -R website/
+website/:
+insgesamt 8
+drwxr-xr-x 2 christian users 4096 15. Mai 17:02 cgi-bin
+drwxr-xr-x 2 christian users 4096 15. Mai 17:02 data
+
+website/cgi-bin:
+insgesamt 20
+-rwxr-xr-x 1 christian users 17575 15. Mai 17:02 heizung.cgi
+
+website/data:
+insgesamt 16
+-rw-r--r-- 1 christian users 13312 15. Mai 17:02 heizung.dbf
+
+
+christian@linux-qo6d:~/GIT/heating-control> git add -N website/
+cgi-bin/ data/    
+
+christian@linux-qo6d:~/GIT/heating-control> git add -N website/cgi-bin/
+christian@linux-qo6d:~/GIT/heating-control> git status
+# Auf Branch master
+# zum Commit vorgemerkte Änderungen:
+#   (benutzen Sie "git reset HEAD <Datei>..." zum Entfernen aus der Staging-Area)
+#
+#       neue Datei:   website/cgi-bin/heizung.cgi
+#
+# Änderungen, die nicht zum Commit vorgemerkt sind:
+#   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
+#   (benutzen Sie "git checkout -- <Datei>..." um die Änderungen im Arbeitsverzeichnis zu verwerfen)
+#
+#       geändert:   website/cgi-bin/heizung.cgi
+#
+# Unbeobachtete Dateien:
+#   (benutzen Sie "git add <Datei>..." um die Änderungen zum Commit vorzumerken)
+#
+#       website/data/
+
