@@ -145,3 +145,12 @@ christian@linux-qo6d:~/GIT/heating-control> git log
 christian@linux-qo6d:~/GIT/heating-control> git log --oneline
 christian@linux-qo6d:~/GIT/heating-control> git log --oneline --graph --decorate
 
+
+
+*** Reset the local 'master' branch to the state of the origin/master branch 
+*** (which is the master branch of the server)
+daniel@linux:~/nerd/git/heating-control> git checkout -B master origin/master 
+Branch master konfiguriert zum Folgen von Remote-Branch master von origin.
+Setze Branch 'master' neu
+Ihr Branch ist auf dem selben Stand wie 'origin/master'.
+
