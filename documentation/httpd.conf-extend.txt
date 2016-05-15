@@ -1,0 +1,35 @@
+15.505.2016/mer
+httpd.conf-extend.txt
+Erweiterung in /etc/apache2/httpd.conf
+(nach Zeile 164)
+======================================
+
+    # 15.05.2016/mer
+    # forbid access to the entire filesystem by default
+    <Directory "/srv/www/heating-control/website">
+        Options None
+        AllowOverride None
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+    # 15.05.2016/mer
+    # ScriptAlias: This controls which directories contain server scripts.
+    # ScriptAliases are essentially the same as Aliases, except that
+    # documents in the realname directory are treated as applications and
+    # run by the server when requested rather than as documents sent to the client.
+    # The same rules about trailing "/" apply to ScriptAlias directives as to
+    # Alias.
+    #
+    ScriptAlias /cgi-bin2/ "/srv/www/heating-control/website/cgi-bin/"
+
+    # 15.05.2016/mer
+    # "/srv/www/cgi-bin" should be changed to whatever your ScriptAliased
+    # CGI directory exists, if you have one, and where ScriptAlias points to.
+    #
+    <Directory "/srv/www/heating-control/website/cgi-bin">
+        AllowOverride None
+        Options +ExecCGI -Includes
+        Order allow,deny
+        Allow from all
+    </Directory>
