@@ -21,24 +21,64 @@ my $DB_MAPPING_INSERT_STATEMENT;
 my $DB_LOGGING_INSERT_STATEMENT;
 my $DB_MAPPING_SELECT_ID_STATEMENT; 
 
+my $LOG_LEVEL = 3;
+my @states = ("Error","Warning","Information","Debug");
+
 main();
 
 sub main{
-    # readAndInsertData();
-    db_connect();
-    db_prepareStatements();
-    db_insertNewMapping("hallo");
+    #db_initialize();
+    #open_pipe();
+
+    extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+160>]");
+    #db_insertNewMapping("AC2F");
+    #db_insertNewData("AC2F", 1300);
 }
 
 sub readAndInsertData{
     while (my $txt = <COM>) {
-        print($txt);
+        #print($txt);
+        my @sensorData = extractAddressAndTemperature($txt);
+        if (@sensorData){
+            @sensorData = filterSensordata(@sensorData);
+            foreach (my $hash_ref = @sensorData){
+                # TODO: untested!! Does the convertion from ref to Hash work here?
+                %s = %{$hash_ref};
+                db_insertNewData(%{$s}{"address"},%{$s}{"reading"});
+            }
+        }
+
     }
 }
-sub intialize{
+sub extractAddressAndTemperature{
+    my $reading = shift;
+    my @result; 
+    
+    if ($reading =~ /^\[(<[0-9a-f]{16};[+|-]?\d+>)*\]$/i){
+        $reading = substr($reading,1,length($reading)-2);
+        #die "Matched: $reading";
+        while ($reading =~ /<([0-9a-f]{16});([+|-]?\d+)>/gi){
+            my %hash(
+                address=>$1,
+                reading=>$2
+            );
+
+            push(@result, \%hash);
+            print "Found: $1 , $2\n";
+        }
+        # return reference to list
+        return @result; 
+    }else{
+        db_log(1, "extractAddressAndTemperature", "Invalid Reading data!: ".$reading);
+        return undef; 
+    }
+}
+sub filterSensorData{
+    return shift;
+}
+sub db_initialize{
     db_connect();
     db_prepareStatements();
-    open_pipe();
 }
 sub open_pipe{
     open ( COM, "/dev/ttyACM0") || die "cannot read serial port: $!";
@@ -59,30 +99,53 @@ sub db_connect{
 	$DBH->do("PRAGMA foreign_keys = ON");
 }
 sub db_prepareStatements{
+    # Insert new Reading 
     my $stm= 
     "INSERT INTO t_reading VALUES (?,?,?,?)";
     $DB_READING_INSERT_STATEMENT = $DBH->prepare($stm);
-
+    # Insert new Mapping
     $stm= 
     "INSERT INTO t_mapping VALUES (?,?,?,?,?)";
     $DB_MAPPING_INSERT_STATEMENT = $DBH->prepare($stm);
-
+    # Insert new Logging 
     $stm = 
-    "INSERT INTO t_logging VALUES (?,?,?,?)";
+    "INSERT INTO t_logging VALUES (?,?,?,?,?)";
     $DB_LOGGING_INSERT_STATEMENT = $DBH->prepare($stm);
-
+    # Select ID, Address from Mapping
     $stm = 
-    "SELECT id FROM t_mapping WHERE address=?";
+    "SELECT id,address FROM t_mapping WHERE address=? AND valid_to IS NULL";
     $DB_MAPPING_SELECT_ID_STATEMENT = $DBH->prepare($stm);
-    
 }
-sub db_insertData{
+sub db_insertNewData{
     my $address = shift;
-    my $reading = shift; 
+    my $addressId; 
     my $time = time();
+    my $reading = shift; 
 
-    #$DB_MAPPING_INSERT_STATEMENT 
-    #$DB_MAPPING_SELECT_ID_STATEMENT 
+    db_log(3, "InsertReading()","Insert new Reading.");
+    $DB_MAPPING_SELECT_ID_STATEMENT->execute($address);
+    my $array_ref = $DB_MAPPING_SELECT_ID_STATEMENT->fetchall_arrayref;
+
+    #print "Id first element of first row: $array_ref->[0]->[0]\n";
+    #print "Anzahl elemente: $#$array_ref\n";
+    #die "Whatever";
+    if ($#$array_ref == 0){
+        $addressId = $array_ref->[0]->[0];
+    } else {
+        # address does not yet exist 
+        db_log(2,"InsertReading()","Insert new Mapping.");
+        db_insertNewMapping($address);
+        $DB_MAPPING_SELECT_ID_STATEMENT->execute($address);
+        $array_ref = $DB_MAPPING_SELECT_ID_STATEMENT->fetchall_arrayref;
+
+        unless ($#$array_ref == 0){
+            die "Insert of new Mapping failed!";
+        }
+
+        $addressId = $array_ref->[0]->[0];
+    }
+
+    $DB_READING_INSERT_STATEMENT->execute(undef, $addressId, $time, $reading); 
 }
 sub db_insertNewMapping{
     my $address = shift; 
@@ -90,6 +153,21 @@ sub db_insertNewMapping{
     my $valid_from = time();
 
     $DB_MAPPING_INSERT_STATEMENT->execute(undef, $address, $name, $valid_from, undef );
+}
+sub db_log{
+    my $timestamp = time();
+    my $log_level = shift; 
+    my $module = shift;
+    my $msg = shift;
+
+    if ($log_level > $LOG_LEVEL){
+        return;
+    }
+
+    $module = "Read_Serial.".$module;
+    my $state = $states[$log_level];
+
+    $DB_LOGGING_INSERT_STATEMENT->execute(undef, $timestamp, $module, $state, $msg); 
 }
 
 __END__

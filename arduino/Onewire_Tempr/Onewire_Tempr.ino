@@ -122,7 +122,7 @@ char* printTemperature(DeviceAddress deviceAddress)
   } else {
     sprintf( string50, "<%s;%+d>", 
              "noDevice",
-             0 );
+             -127 );
   }
   return string50;
   //Serial.print("Temp C: ");
