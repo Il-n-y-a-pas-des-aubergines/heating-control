@@ -1,20 +1,17 @@
 
-drop table temperatur_werte;
+drop table t_readings;
 
-create table if not exists temperatur_werte (
-id integer primary key autoincrement,
-zeitpunkt integer not null,
-raum_temp real,
-aussen_temp real,
-puffer_1 real,
-puffer_2 real,
-puffer_3 real,
-puffer_4 real,
-boiler_1 real,
-boiler_2 real,
-boiler_3 real,
-boiler_4 real
+create table if not exists t_mapping(
+	id INTEGER primary key autoincrement,
+	address TEXT not null,
+	name TEXT not null,
+	valid_from INTEGER not null,
+	valid_to INTEGER
 );
 
-insert into temperatur_werte (zeitpunkt,raum_temp) values (47,20.5);
-insert into temperatur_werte (zeitpunkt,raum_temp) values (48,21.5);
+create table if not exists t_reading(
+	id INTEGER primary key autoincrement,
+	time INTEGER not null,
+	mapping_id INTEGER foreign key references t_mapping(id),
+	reading INTEGER
+);
