@@ -29,8 +29,16 @@ main();
 sub main{
     #db_initialize();
     #open_pipe();
+    # Following function will read data from the pipe and insert it into the db
+    #readAndInsertData();
 
-    extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+160>]");
+    #extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+160>]");
+    my @result = extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+139>]");
+    foreach my $h_ref ( @result){
+        my %h = %{$h_ref};
+        print ("Addr: $h{'address'}, Temp: $h{'reading'}\n");
+    }
+    print @result;
     #db_insertNewMapping("AC2F");
     #db_insertNewData("AC2F", 1300);
 }
@@ -41,10 +49,10 @@ sub readAndInsertData{
         my @sensorData = extractAddressAndTemperature($txt);
         if (@sensorData){
             @sensorData = filterSensordata(@sensorData);
-            foreach (my $hash_ref = @sensorData){
+            foreach my $hash_ref  (@sensorData){
                 # TODO: untested!! Does the convertion from ref to Hash work here?
-                %s = %{$hash_ref};
-                db_insertNewData(%{$s}{"address"},%{$s}{"reading"});
+                my %s = %{$hash_ref};
+                db_insertNewData($s{"address"},$s{"reading"});
             }
         }
 
@@ -58,7 +66,7 @@ sub extractAddressAndTemperature{
         $reading = substr($reading,1,length($reading)-2);
         #die "Matched: $reading";
         while ($reading =~ /<([0-9a-f]{16});([+|-]?\d+)>/gi){
-            my %hash(
+            my %hash = (
                 address=>$1,
                 reading=>$2
             );
