@@ -156,7 +156,6 @@ if ( $CGI->param( 'submit_messwerteliste' ) ) {
 
 my $rc  = $DBH->disconnect;
 
-print $CGI->end_html;
 # CGI Seitenende ausgeben
 seiten_ende( $CGI );
 
