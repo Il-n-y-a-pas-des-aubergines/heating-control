@@ -1,6 +1,10 @@
 #!/usr/bin/perl -T
 
+################################################################
 # 16.05.2016, D.A.Merz
+# TODO: Implement 'filterSensorData()' for sensor data filtering
+#
+###############################################################
 
 use strict;
 use warnings;
@@ -21,24 +25,48 @@ my $DB_MAPPING_INSERT_STATEMENT;
 my $DB_LOGGING_INSERT_STATEMENT;
 my $DB_MAPPING_SELECT_ID_STATEMENT; 
 
-my $LOG_LEVEL = 3;
+# Datasource
+my $DATABASE_PATH = "./db/measurements.db";
+my $LOG_LEVEL = 2;
 my @states = ("Error","Warning","Information","Debug");
+# set to one for a db_connection and basic functionality test
+my $TEST_MODE = 1; 
 
 main();
 
 sub main{
-    #db_initialize();
-    #open_pipe();
-    # Following function will read data from the pipe and insert it into the db
-    #readAndInsertData();
+    if($TEST_MODE){
+        test();
+        die "test finished!";
+    }
 
+    db_initialize();
+    open_pipe();
+    # Following function will read data from the pipe and insert it into the db
+    # will never return!
+    readAndInsertData();
+
+}
+
+### Used to test methods of this script
+sub test{
+    print ">>>>>  Testing....\n";
+    # initialize db for logging
+    db_initialize();
+
+    # FOR THIS TEST A LOT OF LOGGING MESSAGES IN THE DB WILL BE PRODUCED!
+    $LOG_LEVEL = 3;
     #extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+160>]");
-    my @result = extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+139>]");
-    foreach my $h_ref ( @result){
+    my @result = extractAddressAndTemperature("[<aabcd1234bcd1239;+160><THIS IS FUCKING INVALID><aabcd1234bcd1239;+139>]");
+    my @filteredArr = @{filterSensordata(\@result)};
+    foreach my $h_ref ( @filteredArr){
         my %h = %{$h_ref};
         print ("Addr: $h{'address'}, Temp: $h{'reading'}\n");
     }
-    print @result;
+    # AND NOW TEST WITH COMPLETELY INVALID DATA
+    @result = extractAddressAndTemperature("[<To be or not to be?>");
+
+    #print @result;
     #db_insertNewMapping("AC2F");
     #db_insertNewData("AC2F", 1300);
 }
@@ -48,9 +76,8 @@ sub readAndInsertData{
         #print($txt);
         my @sensorData = extractAddressAndTemperature($txt);
         if (@sensorData){
-            @sensorData = filterSensordata(@sensorData);
+            my @filtered_data = @{filterSensordata(\@sensorData)};
             foreach my $hash_ref  (@sensorData){
-                # TODO: untested!! Does the convertion from ref to Hash work here?
                 my %s = %{$hash_ref};
                 db_insertNewData($s{"address"},$s{"reading"});
             }
@@ -58,32 +85,52 @@ sub readAndInsertData{
 
     }
 }
+
 sub extractAddressAndTemperature{
     my $reading = shift;
     my @result; 
     
-    if ($reading =~ /^\[(<[0-9a-f]{16};[+|-]?\d+>)*\]$/i){
+    # check if reading mathes [(<...>)*]
+    if ($reading =~ /^\[(<[^>]*>)*\]$/){
         $reading = substr($reading,1,length($reading)-2);
-        #die "Matched: $reading";
-        while ($reading =~ /<([0-9a-f]{16});([+|-]?\d+)>/gi){
+        
+        my $validDataCounter = 0;
+        # for each sensorData which is defined by <...>
+        while ($reading =~ /(<[^>]*>)/g){
+            my $singleSensorData = $1;
+
+            # check if sensor data is valid (must match <HEX-ADDR;+/-TEMPERATURE>)
+            unless ($singleSensorData =~ /<([0-9a-f]{16});([+|-]?\d+)>/i){
+                db_log(1,"extractAddressAndTemperature()", "Sensor data not valid: ".$singleSensorData);
+                next;
+            }
+
+            db_log(3,"extractAddressAndTemperature()","Got valid sensor data: ".$singleSensorData);
+            print "Result of RegEx: ".$1." ".$2."\n";
+            # build hash with sensor data
             my %hash = (
                 address=>$1,
                 reading=>$2
             );
-
+            print "Result of RegEx secondTime: ".$1." ".$2."\n";
+            # save hash in array
             push(@result, \%hash);
-            print "Found: $1 , $2\n";
-        }
-        # return reference to list
-        return @result; 
+            $validDataCounter++;
+        } 
+
+        db_log(2,"extractAddressAndTemperature()","Got valid data from ".$validDataCounter." sensors.")
     }else{
-        db_log(1, "extractAddressAndTemperature", "Invalid Reading data!: ".$reading);
-        return undef; 
+        db_log(0, "extractAddressAndTemperature()", "Reading does not match basic structure!: ".$reading);
     }
+
+    # return the list
+    return @result; 
 }
-sub filterSensorData{
+# TODO:Still has to be implemented!
+sub filterSensordata{
     return shift;
 }
+
 sub db_initialize{
     db_connect();
     db_prepareStatements();
@@ -92,11 +139,9 @@ sub open_pipe{
     open ( COM, "/dev/ttyACM0") || die "cannot read serial port: $!";
 }
 sub db_connect{
-	# Datasource
-	my $DATABASE = "./db/measurements.db";
 	# DBI::SQLite database handle  
-	#my $dbh = DBI->connect("dbi:SQLite:dbname=$DATABASE","","");
-	$DBH = DBI->connect("dbi:SQLite:dbname=$DATABASE", undef, undef, {
+	#my $dbh = DBI->connect("dbi:SQLite:dbname=$DATABASE_PATH","","");
+	$DBH = DBI->connect("dbi:SQLite:dbname=$DATABASE_PATH", undef, undef, {
 	  AutoCommit => 1,
 	  RaiseError => 1,
 	  sqlite_see_if_its_a_number => 1,
