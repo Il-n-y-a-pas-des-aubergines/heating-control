@@ -57,14 +57,26 @@ sub test{
     # FOR THIS TEST A LOT OF LOGGING MESSAGES IN THE DB WILL BE PRODUCED!
     $LOG_LEVEL = 3;
     #extractAddressAndTemperature("[<aabcd1234bcd1239;+160><aabcd1234bcd1239;+160>]");
-    my @result = extractAddressAndTemperature("[<aabcd1234bcd1239;+160><THIS IS FUCKING INVALID><aabcd1234bcd1239;+139>]");
+    my $valid_reading = "[<aabcd1234bcd1239;+160><YOU CANNOT IMAGINE HOW INVALID THIS DATA IS><aabcd1234bcd1239;+139>]";
+    my $invalid_reading = "[<To be or not to be?>";
+
+    print ">>> Test extractAddressAndTemperature()\n";
+    my @result = extractAddressAndTemperature($valid_reading);
     my @filteredArr = @{filterSensordata(\@result)};
     foreach my $h_ref ( @filteredArr){
+        print ">>>>>> Got one reading...\n";
         my %h = %{$h_ref};
-        print ("Addr: $h{'address'}, Temp: $h{'reading'}\n");
+        print (">>>>>> Addr: $h{'address'}, Temp: $h{'reading'}\n");
+        print ">>>>>> Insert data into db...\n";
+        db_insertNewData ($h{'address'}, $h{'reading'});
+        print "\n";
     }
     # AND NOW TEST WITH COMPLETELY INVALID DATA
-    @result = extractAddressAndTemperature("[<To be or not to be?>");
+    @result = extractAddressAndTemperature($invalid_reading);
+    if (@result){
+        print "hm, there should be no valid data...\n";
+    }
+
 
     #print @result;
     #db_insertNewMapping("AC2F");
@@ -77,9 +89,9 @@ sub readAndInsertData{
         my @sensorData = extractAddressAndTemperature($txt);
         if (@sensorData){
             my @filtered_data = @{filterSensordata(\@sensorData)};
-            foreach my $hash_ref  (@sensorData){
+            foreach my $hash_ref  (@filtered_data){
                 my %s = %{$hash_ref};
-                db_insertNewData($s{"address"},$s{"reading"});
+                db_insertNewData($s{'address'},$s{'reading'});
             }
         }
 
@@ -106,13 +118,13 @@ sub extractAddressAndTemperature{
             }
 
             db_log(3,"extractAddressAndTemperature()","Got valid sensor data: ".$singleSensorData);
-            print "Result of RegEx: ".$1." ".$2."\n";
+            
             # build hash with sensor data
             my %hash = (
                 address=>$1,
                 reading=>$2
             );
-            print "Result of RegEx secondTime: ".$1." ".$2."\n";
+           
             # save hash in array
             push(@result, \%hash);
             $validDataCounter++;
@@ -134,6 +146,7 @@ sub filterSensordata{
 sub db_initialize{
     db_connect();
     db_prepareStatements();
+    db_log(2, "db_initialize()","Successfully connected to Database!");
 }
 sub open_pipe{
     open ( COM, "/dev/ttyACM0") || die "cannot read serial port: $!";
@@ -175,7 +188,7 @@ sub db_insertNewData{
     my $time = time();
     my $reading = shift; 
 
-    db_log(3, "InsertReading()","Insert new Reading.");
+    db_log(3, "InsertReading()","Insert new Reading. Address: ".$address." Reading: ".$reading);
     $DB_MAPPING_SELECT_ID_STATEMENT->execute($address);
     my $array_ref = $DB_MAPPING_SELECT_ID_STATEMENT->fetchall_arrayref;
 
@@ -192,20 +205,24 @@ sub db_insertNewData{
         $array_ref = $DB_MAPPING_SELECT_ID_STATEMENT->fetchall_arrayref;
 
         unless ($#$array_ref == 0){
-            die "Insert of new Mapping failed!";
+            db_log(0,"InserReading()","Failed to insert a new Mapping");
+            return;
         }
 
         $addressId = $array_ref->[0]->[0];
     }
 
-    $DB_READING_INSERT_STATEMENT->execute(undef, $addressId, $time, $reading); 
+    my $id = undef;
+    $DB_READING_INSERT_STATEMENT->execute($id, $addressId, $time, $reading); 
 }
 sub db_insertNewMapping{
+    my $id = undef;
     my $address = shift; 
     my $name = "<Sensor noch nicht zugeordnet>";
     my $valid_from = time();
+    my $valid_to = undef;
 
-    $DB_MAPPING_INSERT_STATEMENT->execute(undef, $address, $name, $valid_from, undef );
+    $DB_MAPPING_INSERT_STATEMENT->execute($id, $address, $name, $valid_from, $valid_to );
 }
 sub db_log{
     my $timestamp = time();
