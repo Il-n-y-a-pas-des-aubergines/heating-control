@@ -61,7 +61,7 @@ $SVG = SVG->new( width =>$SVG_CONF{max_x}, height => $SVG_CONF{max_y},
 use DBI qw(:sql_types); # implizit DBI::SQLite database handle
 my $DBH;
 
-my $DATABASE = "../data/heizung.dbf";
+my $DATABASE = "../../db/measurements.db";
 
 $DBH = DBI->connect("dbi:SQLite:dbname=$DATABASE", undef, undef, {
   AutoCommit => 1,
