@@ -6,8 +6,8 @@
 // $ cat /dev/ttyACM0
 
 // Wertebereich der Sensoren:
-// -127..+85 °C
-// treten gelegentlcih beim ein- und ausstecken auf.
+// -127..+85 (?) °C
+// treten gelegentlich beim ein- und ausstecken auf.
 
 // Data wire is plugged into pin 2 on the Arduino
 #define ONE_WIRE_BUS 2
@@ -22,7 +22,7 @@ DallasTemperature sensors(&oneWire);
 DeviceAddress sensor_adr[20];
 
 // beliebige Strings
-char string[300];
+String string;
 // in Unterfunktionen
 char string50[51];
 // Geräteadressen
@@ -32,33 +32,17 @@ char string16[17];
 // ----------------------------------
 void setup(void)
 {
-  // c.mer
-  Serial.flush();
-  
   // start serial port
   Serial.begin(9600);
-  Serial.println("------------------------------------------");
-  Serial.println("Dallas Temperature IC Control Library Demo");
+  //Serial.println("------------------------------------------");
+  //Serial.println("Dallas Temperature IC Control Library Demo");
+  Serial.println("[InitArduino]");
 
   // Start up the library
   sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. 
                    // Ups the delay giving the IC more time to process the temperature measurement
   delay(1000);        // delay in between reads for stability
 
-  // locate devices on the bus
-  sprintf(string, "Habe %u Sensoren gefunden.\n", sensors.getDeviceCount());
-  Serial.print( string );
-  
-  for (int i = 0; i < sensors.getDeviceCount(); i++) {
-    if (sensors.getAddress(sensor_adr[i], i)) {
-      sprintf(string, "Adresse von Sensor %u: %s\n", i, printAddress(sensor_adr[i]));
-      Serial.print( string );
-    } else {
-      sprintf(string, "Unable to find address for Device %u\n", i);
-      Serial.print( string );
-    }
-  }
-  Serial.println();
 }
 
 
@@ -73,29 +57,15 @@ void loop(void)
   sensors.requestTemperatures(); // Send the command to get temperatures
   
   // Schleife, die die Werte aller gefundenen Sensoren ausgibt
-  Serial.print("[");
+  string = "[";
   for (int i = 0; i < sensors.getDeviceCount(); i++) {
     sensors.getAddress(addr, i);
-    Serial.print( printTemperature(addr) );
+    string = string + printTemperature(addr);
   }
-  Serial.println("]");
+  string = string + "]";
+  Serial.println(string);
   
-  
-  // call sensors.requestTemperatures() to issue a global temperature 
-  // request to all devices on the bus
-  //Serial.print("Requesting temperatures...");
-  //sensors.requestTemperatures(); // Send the command to get temperatures
-  //Serial.print("DONE - ");
-  
-  //Serial.print("Temperature for Device 0 is: ");
-  //Serial.print(sensors.getTempCByIndex(0)); 
-  // Why "byIndex"? You can have more than one IC on the same bus. 0 refers to the first IC on the wire
-  //Serial.print(" - Temperature for Device 1 is: ");
-  //Serial.println(sensors.getTempCByIndex(1)); 
-  
-  // c.mer
-  Serial.flush();
-  delay(1000);        // delay in between reads for stability
+  delay(5000);        // delay in between reads for stability
   
 }
 
@@ -112,8 +82,6 @@ char* printAddress(DeviceAddress deviceAddress)
 // function to print the temperature for a device
 char* printTemperature(DeviceAddress deviceAddress)
 {
-  // ! wg. sprintf bug: int, * 100 !
-  //float tempC = sensors.getTempC(deviceAddress);
   int tempC = sensors.getTempC(deviceAddress)*100;
   if (deviceAddress) {
     sprintf( string50, "<%s;%+d>", 
@@ -125,9 +93,5 @@ char* printTemperature(DeviceAddress deviceAddress)
              -127 );
   }
   return string50;
-  //Serial.print("Temp C: ");
-  //Serial.print(tempC);
-  //Serial.print(" Temp F: ");
-  //Serial.print(DallasTemperature::toFahrenheit(tempC));
 }
 
