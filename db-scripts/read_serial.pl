@@ -113,11 +113,11 @@ sub extractAddressAndTemperature{
 
             # check if sensor data is valid (must match <HEX-ADDR;+/-TEMPERATURE>)
             unless ($singleSensorData =~ /<([0-9a-f]{16});([+|-]?\d+)>/i){
-                db_log(1,"extractAddressAndTemperature()", "Sensor data not valid: ".$singleSensorData);
+                db_log(1,"extractAddressAndTemperature()", "Structure of sensorData not valid: ".$singleSensorData);
                 next;
             }
 
-            db_log(3,"extractAddressAndTemperature()","Got valid sensor data: ".$singleSensorData);
+            db_log(3,"extractAddressAndTemperature()","Got sensor data with valid structure: ".$singleSensorData);
             
             # build hash with sensor data
             my %hash = (
@@ -130,7 +130,7 @@ sub extractAddressAndTemperature{
             $validDataCounter++;
         } 
 
-        db_log(2,"extractAddressAndTemperature()","Got valid data from ".$validDataCounter." sensors.")
+        db_log(3,"extractAddressAndTemperature()","Got data with valid structure from ".$validDataCounter." sensors.")
     }else{
         db_log(0, "extractAddressAndTemperature()", "Reading does not match basic structure!: ".$reading);
     }
@@ -140,7 +140,25 @@ sub extractAddressAndTemperature{
 }
 # TODO:Still has to be implemented!
 sub filterSensordata{
-    return shift;
+    my @sensorData = @{shift};
+
+    my @result;
+    foreach (@sensorData){
+        my %h = %{$_};
+
+        unless (filterSingleSensordata(\%h)){
+            # sensor data seems not to be valid...
+            db_log(2,"filterSensordata()","Sensordata with invalid values have been ignored.".%h)
+            next;
+        }
+        
+        push (@result, \%h);
+    }
+    
+    return @result;
+}
+sub filterSingleSensordata{
+    return 1;
 }
 
 sub db_initialize{
