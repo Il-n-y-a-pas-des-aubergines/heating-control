@@ -30,7 +30,7 @@ my $DATABASE_PATH = "./db/measurements.db";
 my $LOG_LEVEL = 2;
 my @states = ("Error","Warning","Information","Debug");
 # set to one for a db_connection and basic functionality test
-my $TEST_MODE = 1; 
+my $TEST_MODE = 0; 
 
 main();
 
@@ -42,6 +42,8 @@ sub main{
 
     db_initialize();
     open_pipe();
+    # skip leading trash data till Init String is found
+    skipDataTillInitMessage();
     # Following function will read data from the pipe and insert it into the db
     # will never return!
     readAndInsertData();
@@ -83,32 +85,50 @@ sub test{
     #db_insertNewData("AC2F", 1300);
 }
 
-sub readAndInsertData{
-    while (my $txt = <COM>) {
-        #print($txt);
-        my @sensorData = extractAddressAndTemperature($txt);
-        if (@sensorData){
-            my @filtered_data = @{filterSensordata(\@sensorData)};
-            foreach my $hash_ref  (@filtered_data){
-                my %s = %{$hash_ref};
-                db_insertNewData($s{'address'},$s{'reading'});
-            }
+sub skipDataTillInitMessage{
+    while (1) {
+        while (my $txt = <COM>) {
+            print($txt."\n");
+            return if $txt =~ /\[InitArduino\]/;
         }
-
+        print "Init: warte 1 sec...\n";
+        sleep 1;
     }
+}
+
+sub readAndInsertData{
+    while (1) {
+        while (my $txt = <COM>) {
+            print($txt."\n");
+            my @sensorData = extractAddressAndTemperature($txt);
+            if (@sensorData){
+                my @filtered_data = @{filterSensordata(\@sensorData)};
+                foreach my $hash_ref  (@filtered_data){
+                    my %s = %{$hash_ref};
+                    db_insertNewData($s{'address'},$s{'reading'});
+                }
+                print "eine Zeile verarbeitet\n";
+            }
+    
+        }
+        print "warte 1 sec...\n";
+        sleep 1;
+    }
+    print "Ende von readAndInsertData\n";
 }
 
 sub extractAddressAndTemperature{
     my $reading = shift;
+    chomp $reading;
     my @result; 
     
     # check if reading mathes [(<...>)*]
-    if ($reading =~ /^\[(<[^>]*>)*\]$/){
+    if ($reading =~ /^\s*\[(<[^<>]+>)*\]\s*$/){
         $reading = substr($reading,1,length($reading)-2);
         
         my $validDataCounter = 0;
         # for each sensorData which is defined by <...>
-        while ($reading =~ /(<[^>]*>)/g){
+        while ($reading =~ /(<[^<>]+>)/g){
             my $singleSensorData = $1;
 
             # check if sensor data is valid (must match <HEX-ADDR;+/-TEMPERATURE>)
@@ -138,7 +158,7 @@ sub extractAddressAndTemperature{
     # return the list
     return @result; 
 }
-# TODO:Still has to be implemented!
+# TODO : Still has to be implemented!
 sub filterSensordata{
     my @sensorData = @{shift};
 
@@ -168,6 +188,7 @@ sub db_initialize{
 }
 sub open_pipe{
     open ( COM, "/dev/ttyACM0") || die "cannot read serial port: $!";
+    db_log(2, "db_initialize()","Successfully opened serial pipe!");
 }
 sub db_connect{
 	# DBI::SQLite database handle  
@@ -257,14 +278,6 @@ sub db_log{
 
     $DB_LOGGING_INSERT_STATEMENT->execute(undef, $timestamp, $module, $state, $msg); 
 }
-
-__END__
-
-
-while (<COM>) {
-    print($_);
-}
-
 
 
 __END__
