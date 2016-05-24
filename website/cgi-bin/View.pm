@@ -113,7 +113,7 @@ sub drawHeaderAndTitle() {
 # CGI Seitenende
 sub drawFooter() {
     print 
-        '<br/><br/>-- (c) Christian Merz, Daniel Merz 2016 --',
+        '<br/><br/>-- (c) Christian Merz und Daniel Merz 2016 --',
         $CGI->end_html,
         "\n";
 

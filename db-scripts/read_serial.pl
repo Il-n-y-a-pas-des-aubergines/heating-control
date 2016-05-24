@@ -168,7 +168,7 @@ sub filterSensordata{
 
         unless (filterSingleSensordata(\%h)){
             # sensor data seems not to be valid...
-            db_log(2,"filterSensordata()","Sensordata with invalid values have been ignored.".%h)
+            db_log(2,"filterSensordata()","Sensordata with invalid values have been ignored: ".%h)
             next;
         }
         
