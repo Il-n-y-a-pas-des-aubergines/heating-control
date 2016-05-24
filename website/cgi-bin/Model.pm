@@ -14,7 +14,7 @@ my $DBH;
 my $DATABASE = "../../db/measurements.db";
 
 # Statements
-my $DB_READ_SENSORDATA; 
+my $DB_READ_SENSORDATA; # returns the values as: time|address|reading
 
 sub initialize(){
     connectDb();
@@ -51,8 +51,8 @@ sub db_prepareStatements{
 }
 # ------------------------------------
 # alle Messwerte des Tages (=ab startzeitpunkt) einlesen
-# TIME | ADDRESS | READING
-# secFrom1970 | HEX | 10^-2°C
+# UNIX-TIME | ADDRESS | READING
+# secFrom1970 | HEX | 1=10^-2°C
 sub db_readSensorData($$){
     my $startTime = shift;
     my $endTime = shift;
@@ -66,51 +66,26 @@ sub db_readSensorData($$){
 }; # messwerte_lesen
 
 # aus den Messwerten des Tages (s. messwerte_lesen) die Extremwerte ermitteln
+# Returns ref to arr (minVal, maxVal)
 sub calculatExtremeValues(\@) {
-    my $ary_ref   = shift;
+    my rows_ref = shift;
 
-    my %extremwerte = (
-        max_raum_temp   => -100,
-        max_aussen_temp => -100,
-        max_puffer_1    => -100,
-        max_puffer_2    => -100,
-        max_puffer_3    => -100,
-        max_puffer_4    => -100,
-        max_boiler_1    => -100,
-        max_boiler_2    => -100,
-        max_boiler_3    => -100,
-        max_boiler_4    => -100,
-        min_raum_temp   =>  100,
-        min_aussen_temp =>  100,
-        min_puffer_1    =>  100,
-        min_puffer_2    =>  100,
-        min_puffer_3    =>  100,
-        min_puffer_4    =>  100,
-        min_boiler_1    =>  100,
-        min_boiler_2    =>  100,
-        min_boiler_3    =>  100,
-        min_boiler_4    =>  100,
-    );
+    my $minVal = 200;
+    my $maxVal = -200;
 
-    foreach my $idx ( @$ary_ref ) {
-        # Raumtemperatur
-        if ($idx->{raum_temp} > $extremwerte{max_raum_temp}) { $extremwerte{max_raum_temp} = $idx->{raum_temp} };
-        if ($idx->{raum_temp} < $extremwerte{min_raum_temp} ) { $extremwerte{min_raum_temp} = $idx->{raum_temp} };
-        # Aussentemperatur
-        if ($idx->{aussen_temp} > $extremwerte{max_aussen_temp} ) { $extremwerte{max_aussen_temp} = $idx->{aussen_temp} };
-        if ($idx->{aussen_temp} < $extremwerte{min_aussen_temp} ) { $extremwerte{min_aussen_temp} = $idx->{aussen_temp} };
-        # Puffer 1 - 4
-        # Boiler 1 - 4
+    foreach my $r (@$rows_ref){
+        my %row = %$r;
+        
+        $minVal = $row{'reading'} if ($row{'reading'} < $minVal);
+        $maxVal = $row{'reading'} if ($row{'reading'} > $maxVal);
     }
-    # DEV = proof of concept
-    print "<p>\n";
-    print "max_raum_temp: $extremwerte{max_raum_temp} <br />\n";
-    print "min_raum_temp: $extremwerte{min_raum_temp} <br />\n";
-    print "max_aussen_temp: $extremwerte{max_aussen_temp} <br />\n";
-    print "min_aussen_temp: $extremwerte{min_aussen_temp} <br />\n";
-    print "</p>\n";
 
-    return \%extremwerte;
+    # ensure at least a range between 0 and 30
+    $minVal = 0 if (0 < $minVal);
+    $maxVal = 30 if (30 > $maxVal);
+
+    my @result = ($minVal, $maxVal);
+    return \@result;
 
 }; # extremwerte_ermitteln
 
