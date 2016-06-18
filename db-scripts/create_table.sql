@@ -1,6 +1,12 @@
 
--- drop table t_reading;
+-- create tables for heating control 
 
+-- usage:
+-- $ sqlite3 ../db/measurements.db
+-- sqlite> .read create_table.sql
+-- sqlite> .schema
+
+-- maps sensor ID (addrss) to it's description (name)
 create table if not exists t_mapping(
     id INTEGER primary key autoincrement,
     address TEXT not null,
@@ -9,6 +15,8 @@ create table if not exists t_mapping(
     valid_to INTEGER
 );
 
+-- stores the read sensor data
+-- sensor usage: see mapping
 create table if not exists t_reading(
     id INTEGER primary key autoincrement,
     mapping_id INTEGER not null,
@@ -17,6 +25,7 @@ create table if not exists t_reading(
     FOREIGN KEY (mapping_id) REFERENCES t_mapping(id)
 );
 
+-- logging informations
 create table if not exists t_logging(
     id INTEGER primary key autoincrement,
     timestamp INTEGER not null,
