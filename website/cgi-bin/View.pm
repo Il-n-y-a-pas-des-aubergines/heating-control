@@ -13,6 +13,9 @@ use CGI::Carp qw(fatalsToBrowser warningsToBrowser);
 use CGI::Pretty qw( :html3 );
 my $CGI;
 
+# must be true if the website will be displayed on an Appache
+my $AppacheConfig = 1;
+
 # SVG zur Präsentation
 #use SVG;
 use SVG (-indent => "  ",   # 2 Blank statt TAB zum Einrücken verwenden
@@ -98,8 +101,9 @@ sub drawBody(){
 # ------------------------------------
 # CGI Seitenanfang
 sub drawHeaderAndTitle() {
+    print $CGI->header if $AppacheConfig; # print additional doctype information for appache
+
     print 
-        #$CGI->header, prints some strange Doctype at the beginning
         $CGI->start_html( 'Heizungssteuerung' ),
         $CGI->h1( {-align=>"CENTER"}, 'Heizungssteuerung' );
     #dump_short($CGI);
