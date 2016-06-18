@@ -25,6 +25,8 @@ sub cleanUp(){
 }
 
 sub connectDb{
+    die "Database file '$DATABASE' doesn't exist!" unless -f $DATABASE; 
+
     $DBH = DBI->connect("dbi:SQLite:dbname=$DATABASE", undef, undef, {
       AutoCommit => 1,
       RaiseError => 1,
@@ -68,7 +70,7 @@ sub db_readSensorData($$){
 # aus den Messwerten des Tages (s. messwerte_lesen) die Extremwerte ermitteln
 # Returns ref to arr (minVal, maxVal)
 sub calculatExtremeValues(\@) {
-    my rows_ref = shift;
+    my $rows_ref = shift;
 
     my $minVal = 200;
     my $maxVal = -200;
