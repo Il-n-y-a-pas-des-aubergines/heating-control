@@ -4,7 +4,7 @@ package Model;
 sub initialize();
 sub cleanUp();
 sub db_readSensorData($$); # params: startTime, endTime
-sub calculatExtremeValues(\@); # params: readingDataArr_ref
+sub calculatExtremeValues($); # params: readingDataArr_ref
 
 # === MODEL ====================================================================
 # Saten liegen in einer SQLight Datenbank
@@ -61,15 +61,15 @@ sub db_readSensorData($$){
 
     # Messwerte einlesen
     $DB_READ_SENSORDATA->execute($startTime, $endTime);
-    my $ary_ref = $DB_READ_SENSORDATA->fetchall_arrayref;
+    my $arr_ref = $DB_READ_SENSORDATA->fetchall_arrayref({});
 
-    return $ary_ref;
+    return $arr_ref;
 
 }; # messwerte_lesen
 
 # aus den Messwerten des Tages (s. messwerte_lesen) die Extremwerte ermitteln
 # Returns ref to arr (minVal, maxVal)
-sub calculatExtremeValues(\@) {
+sub calculatExtremeValues($) {
     my $rows_ref = shift;
 
     my $minVal = 200;
@@ -84,9 +84,10 @@ sub calculatExtremeValues(\@) {
 
     # ensure at least a range between 0 and 30
     $minVal = 0 if (0 < $minVal);
-    $maxVal = 30 if (30 > $maxVal);
+    $maxVal = 300 if (300 > $maxVal);
 
-    my @result = ($minVal, $maxVal);
+    # degree values are in 1/100°C -> return in °C
+    my @result = ($minVal/100, $maxVal/100);
     return \@result;
 
 }; # extremwerte_ermitteln

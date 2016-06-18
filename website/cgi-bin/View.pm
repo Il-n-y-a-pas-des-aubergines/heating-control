@@ -5,8 +5,9 @@ package View;
 # PROTOTYPES
 sub initialize();
 sub drawHeaderAndTitle(); 
-sub drawBody();
+sub drawBody($$);
 sub drawFooter(); 
+sub drawPage($$);
 
 use CGI qw(*table);
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser);
@@ -66,23 +67,25 @@ sub init_svg{
 }
 
 
-sub drawPage{
+sub drawPage($$){
     # CONTROLLER: CGI Seitenanfang ausgeben
     drawHeaderAndTitle();
     
-    drawBody();
+    drawBody(shift, shift);
 
     # CGI Seitenende ausgeben
     drawFooter();
 } #drawPage
 
-sub drawBody(){
+sub drawBody($$){
+    my $minmax_ref = shift;
+    my $dataRows_ref = shift;
 
     # VIEW: Koordinatensystem und Kurven erstellen und ausgeben
-    koordsystem_zeichnen( $SVG, 'Raumtemperatur - Aussentemperatur', @min_max );
+    koordsystem_zeichnen($SVG, 'Raumtemperatur - Aussentemperatur', $minmax_ref);
 
     # SVG Temp.Kurven für die gewünschten Elemente zeichnen
-    temperatur_kurven_zeichnen( $SVG, $WERTE_REF, "raum_temp", "aussen_temp" );
+    #temperatur_kurven_zeichnen( $SVG, $dataRows_ref, "raum_temp", "aussen_temp" );
         #my $elem = shift;       # SVG Element
         #my $ary_ref = shift;    # Werte aus der DB
         #my @elemente = @_;      # innen/aussen, puffer1-4, boiler1-4
@@ -179,7 +182,9 @@ sub koordsystem_zeichnen {
     #print "koordsystem_zeichnen param: @_<br />\n";
     my $elem = shift;
     my $titel = shift;
-    my @y_min_max = @_;
+    my $minMax_ref = shift; 
+
+    my @y_min_max = @{$minMax_ref};
 
     # --------------------
     # Vorbereitung Y-Achse
@@ -298,8 +303,8 @@ sub koordsystem_zeichnen {
     );
     #for (my $x=1; $x<=16; $x++) { 
     #    ($x0,$y0) = ($AKT_CONF{x_00}, $AKT_CONF{y_00}-30*$x);
-    for (my $x=$y_min_max[0]; $x<=$y_min_max[1]; $x++) { 
-        ($x0,$y0) = ($AKT_CONF{x_00}, $AKT_CONF{y_00}-$y_step*$x);
+    ($x0,$y0) = ($AKT_CONF{x_00}, $AKT_CONF{y_00} + $y_step);
+    for (my $x=$y_min_max[0]; $y0>1.25*$AKT_CONF{offset}; $x++) { 
         # Striche senkrecht zur Achse
         $tag = $y_bemassung->line(
             id => "y$x",
@@ -315,6 +320,7 @@ sub koordsystem_zeichnen {
             y      => $y0+5,
             -cdata => "$x",
         );
+        $y0 -= $y_step;
     }
 
 ## add a circle to the group
