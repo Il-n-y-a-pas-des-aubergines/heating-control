@@ -51,7 +51,7 @@ sub init_conf{
         y_00_default => 450,    # default max_y-offset; 
         y_00         => 450,    # default max_y-offset; 
                                 # wird bei negat. Y-Werten nach oben geschoben
-        y_step       =>   0,    # Skalierung wir gesetzt in koordsystem_zeichnen
+        y_step       =>   0,    # Skalierung wir gesetzt in drawCoordsystem
                                 # die Schrittweite ist abhängig von der Anzahl
                                 #    der unterzubringenden Punkte
     );
@@ -82,7 +82,7 @@ sub drawBody($$){
     my $dataRows_ref = shift;
 
     # VIEW: Koordinatensystem und Kurven erstellen und ausgeben
-    koordsystem_zeichnen($SVG, 'Raumtemperatur - Aussentemperatur', $minmax_ref);
+    drawCoordsystem($SVG, 'Raumtemperatur - Aussentemperatur', $minmax_ref);
 
     # SVG Temp.Kurven für die gewünschten Elemente zeichnen
     #temperatur_kurven_zeichnen( $SVG, $dataRows_ref, "raum_temp", "aussen_temp" );
@@ -178,8 +178,8 @@ sub messwerteliste_ausgeben {
 }; # messwerteliste_ausgeben
 
 # SVG Koordinatensystem
-sub koordsystem_zeichnen {
-    #print "koordsystem_zeichnen param: @_<br />\n";
+sub drawCoordsystem {
+    #print "drawCoordsystem param: @_<br />\n";
     my $elem = shift;
     my $titel = shift;
     my $minMax_ref = shift; 
@@ -191,7 +191,7 @@ sub koordsystem_zeichnen {
 
     # y_min_max auf nächsten Int runden
     @y_min_max = ( int($y_min_max[0])-1, int($y_min_max[1])+1 );
-    #print "koordsystem_zeichnen y_min_max: @y_min_max<br />\n";
+    #print "drawCoordsystem y_min_max: @y_min_max<br />\n";
 
     # so viele Punkte müssen auf der y-Achse untergebracht werden:
     my $y_anz_punkte = $y_min_max[1] - $y_min_max[0] +1;
@@ -327,7 +327,7 @@ sub koordsystem_zeichnen {
 #$elem->circle( cx => 200, cy => 100, r => 50, id => 'circle_in_group_y', 
 #    fill   => 'green' );
 
-}; # koordsystem_zeichnen
+}; # drawCoordsystem
 # SVG eine Temp.Kurve zeichnen
 sub kurve_zeichnen {
     #print "kurve_zeichnen <br />\n";
