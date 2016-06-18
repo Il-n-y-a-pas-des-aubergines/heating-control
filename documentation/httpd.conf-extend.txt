@@ -1,4 +1,4 @@
-15.505.2016/mer
+15.05.2016/mer
 httpd.conf-extend.txt
 Erweiterung in /etc/apache2/httpd.conf
 (nach Zeile 164)
