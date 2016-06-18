@@ -12,6 +12,12 @@ use warnings;
 use IO::Handle;
 #use Time::localtime;
 
+my $LOG_LEVEL = 2;
+my @states = ("Error","Warning","Information","Debug");
+# set to one for a db_connection and basic functionality test
+# 0=none, 1=TEST
+my $TEST_MODE = 0; 
+
 ### DATABASE Connection
 # use DBI - DatabaseInterface;
 use DBI qw(:sql_types); # implizit DBD::SQLite database handle
@@ -27,10 +33,6 @@ my $DB_MAPPING_SELECT_ID_STATEMENT;
 
 # Datasource
 my $DATABASE_PATH = "../db/measurements.db";
-my $LOG_LEVEL = 2;
-my @states = ("Error","Warning","Information","Debug");
-# set to one for a db_connection and basic functionality test
-my $TEST_MODE = 1; 
 
 main();
 
