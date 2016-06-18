@@ -26,11 +26,11 @@ my $DB_LOGGING_INSERT_STATEMENT;
 my $DB_MAPPING_SELECT_ID_STATEMENT; 
 
 # Datasource
-my $DATABASE_PATH = "./db/measurements.db";
+my $DATABASE_PATH = "../db/measurements.db";
 my $LOG_LEVEL = 2;
 my @states = ("Error","Warning","Information","Debug");
 # set to one for a db_connection and basic functionality test
-my $TEST_MODE = 0; 
+my $TEST_MODE = 1; 
 
 main();
 
@@ -64,7 +64,7 @@ sub test{
 
     print ">>> Test extractAddressAndTemperature()\n";
     my @result = extractAddressAndTemperature($valid_reading);
-    my @filteredArr = @{filterSensordata(\@result)};
+    my @filteredArr = filterSensordata(\@result);
     foreach my $h_ref ( @filteredArr){
         print ">>>>>> Got one reading...\n";
         my %h = %{$h_ref};
@@ -102,7 +102,7 @@ sub readAndInsertData{
             print($txt."\n");
             my @sensorData = extractAddressAndTemperature($txt);
             if (@sensorData){
-                my @filtered_data = @{filterSensordata(\@sensorData)};
+                my @filtered_data = filterSensordata(\@sensorData);
                 foreach my $hash_ref  (@filtered_data){
                     my %s = %{$hash_ref};
                     db_insertNewData($s{'address'},$s{'reading'});
@@ -160,15 +160,15 @@ sub extractAddressAndTemperature{
 }
 # TODO : Still has to be implemented!
 sub filterSensordata{
-    my @sensorData = @{shift};
+    my $sensorData = shift;
 
     my @result;
-    foreach (@sensorData){
-        my %h = %{$_};
+    foreach my $data (@$sensorData){
+        my %h = %{$data};
 
         unless (filterSingleSensordata(\%h)){
             # sensor data seems not to be valid...
-            db_log(2,"filterSensordata()","Sensordata with invalid values have been ignored: ".%h)
+            db_log(2,"filterSensordata()","Sensordata with invalid values have been ignored: ",%h);
             next;
         }
         
