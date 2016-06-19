@@ -58,39 +58,48 @@ sub drawCoordsystem{
     #print "drawCoordsystem param: @_<br />\n";
     my $graph = shift;
     my $titel = shift;
-    my $minMax_ref = shift; 
+    my $minMaxData_ref = shift;
+    #my $minMaxTime_ref = shift; 
 
     my $svg = $graph->{svg};
     my $AKT_CONF = $graph->{conf};
-    my @y_min_max = @{$minMax_ref};
+    my @y_min_max = @{$minMaxData_ref};
 
+    print "Min Max is : ";
+    print "@y_min_max";
+    print "\n";
     # --------------------
     # Vorbereitung Y-Achse
 
     # y_min_max auf nächsten Int runden
-    @y_min_max = ( int($y_min_max[0])-1, int($y_min_max[1])+1 );
+    @y_min_max = ( int($y_min_max[0]), int($y_min_max[1]) );
     #print "drawCoordsystem y_min_max: @y_min_max<br />\n";
 
     # so viele Punkte müssen auf der y-Achse untergebracht werden:
     my $y_anz_punkte = $y_min_max[1] - $y_min_max[0] +1;
 
     # die Schrittweite ist abhängig von der Anzahl der unterzubringenden Punkte
-    my $y_step = ( $y_anz_punkte <= 16 ) ? 30 :
-                 ( $y_anz_punkte <= 32 ) ? 15 :
-                 ( $y_anz_punkte <= 64 ) ?  7 :
-                                            3 ;
+    my $deltaY_data =   ( $y_anz_punkte >= 40 ) ? 5 :
+                        ( $y_anz_punkte >= 20 ) ? 2 :
+                                                  1 ;
+    
+    my $y_step =  ( $AKT_CONF->{max_y} - (2*$AKT_CONF->{offset})) / 22;
+                #( $y_anz_punkte <= 16 ) ? 30 :
+                # ( $y_anz_punkte <= 32 ) ? 15 :
+                # ( $y_anz_punkte <= 64 ) ?  7 :
+                #                            3 ;
+    
     $AKT_CONF->{y_step} = $y_step;
  
     # bei negativen y-Werten muss die X-Achse nach oben verschoben werden
     if ( $y_min_max[0] < 0 ) { 
-        $AKT_CONF->{y_00} = $AKT_CONF->{y_00_default} + $y_step*$y_min_max[0];
+        $AKT_CONF->{y_00} = $AKT_CONF->{y_00_default} + $y_step*($y_min_max[0]/$deltaY_data);
     } else { 
         $AKT_CONF->{y_00} = $AKT_CONF->{y_00_default};
     }
 
     # --------------------
-    my $tag;
-
+    
 # mein Koordinatensstem:
 # die Y-Achse geht immer von (0,0) bis (0,max_y-offset)
 # die X-Achse geht per default von (0,0) bis (0,max_x-offset)
@@ -101,14 +110,14 @@ sub drawCoordsystem{
     # --------------------
     # die X-Achse geht von
     #   SVG(x_00, y_00) -> (max_x-offset, y_00)
-    $tag = $svg->line(
+    $svg->line(
         id => 'x_achse',
         x1 =>  $AKT_CONF->{x_00},
         y1 =>  $AKT_CONF->{y_00},
         x2 =>  $AKT_CONF->{max_x}-$AKT_CONF->{offset},
         y2 =>  $AKT_CONF->{y_00},
     );
-    $tag = $svg->text(
+    $svg->text(
         id          => 'x_text',
         'font-size' => "20",
         x           => $AKT_CONF->{max_x}-$AKT_CONF->{offset}-40,
@@ -120,14 +129,14 @@ sub drawCoordsystem{
     # die Y-Achse geht von 
     #   SVG(x_00, y_00) -> SVG(x_00, offset)
     # ! y_00_default statt y_00 !
-    $tag = $svg->line(
+    $svg->line(
         id => 'y_achse',
         x1 =>  $AKT_CONF->{x_00},
         y1 =>  $AKT_CONF->{y_00_default},
         x2 =>  $AKT_CONF->{x_00},
         y2 =>  $AKT_CONF->{offset},
     );
-    $tag = $svg->text(
+    $svg->text(
         id     => 'y_text',
         'font-size' => "20",
         x      => $AKT_CONF->{x_00},
@@ -154,7 +163,7 @@ sub drawCoordsystem{
     for (my $x=1; $x<=24; $x++) { 
         ($x0,$y0) = ($AKT_CONF->{x_00}+30*$x, $AKT_CONF->{y_00});
         # Striche senkrecht zur Achse
-        $tag = $x_bemassung->line(
+        $x_bemassung->line(
             id => "x$x",
             x1 =>  $x0,
             y1 =>  $y0-5,
@@ -162,7 +171,7 @@ sub drawCoordsystem{
             y2 =>  $y0+5,
         );
         # Beschriftung
-        $tag = $x_bemassung->text(
+        $x_bemassung->text(
             id     => "xtxt$x",
             x      => $x0,
             y      => $y0,
@@ -179,26 +188,32 @@ sub drawCoordsystem{
         id            => 'y_bemassung',
         'font-size'   => "10",
     );
-    #for (my $x=1; $x<=16; $x++) { 
-    #    ($x0,$y0) = ($AKT_CONF->{x_00}, $AKT_CONF->{y_00}-30*$x);
-    ($x0,$y0) = ($AKT_CONF->{x_00}, $AKT_CONF->{y_00} + $y_step);
-    for (my $x=$y_min_max[0]; $y0>1.25*$AKT_CONF->{offset}; $x++) { 
+    
+    $x0 = $AKT_CONF->{x_00};
+    # calculate last point at the bottom
+    my $amountOfSteps = 
+        int(($AKT_CONF->{y_00} - $AKT_CONF->{y_00_default}) / $y_step);
+    my $y_value = $deltaY_data * $amountOfSteps;
+    # calculate position of last point
+    $y0 = $AKT_CONF->{y_00} - ($y_step * $amountOfSteps);
+    while ($y0>1.25*$AKT_CONF->{offset}) { 
         # Striche senkrecht zur Achse
-        $tag = $y_bemassung->line(
-            id => "y$x",
+        $y_bemassung->line(
+            id => "y$y_value",
             x1 =>  $x0-5,
             y1 =>  $y0,
             x2 =>  $x0+5,
             y2 =>  $y0,
         );
         # Beschriftung
-        $tag = $y_bemassung->text(
-            id     => "ytxt$x",
+        $y_bemassung->text(
+            id     => "ytxt$y_value",
             x      => $x0-25,
             y      => $y0+5,
-            -cdata => "$x",
+            -cdata => "$y_value",
         );
         $y0 -= $y_step;
+        $y_value += $deltaY_data;
     }
 
 ## add a circle to the group
@@ -206,6 +221,7 @@ sub drawCoordsystem{
 #    fill   => 'green' );
 
 }; # drawCoordsystem
+
 # SVG eine Temp.Kurve zeichnen
 sub kurve_zeichnen {
     #print "kurve_zeichnen <br />\n";

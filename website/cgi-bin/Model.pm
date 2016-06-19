@@ -84,10 +84,11 @@ sub calculatExtremeValues($) {
 
     # ensure at least a range between 0 and 30
     $minVal = 0 if (0 < $minVal);
-    $maxVal = 300 if (300 > $maxVal);
+    $maxVal = 3000 if (3000 > $maxVal);
 
     # degree values are in 1/100°C -> return in °C
     my @result = ($minVal/100, $maxVal/100);
+    
     return \@result;
 
 }; # extremwerte_ermitteln
