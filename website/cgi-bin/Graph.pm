@@ -72,7 +72,7 @@ sub drawCoordsystem{
 # mein Koordinatensstem:
 # die Y-Achse geht immer von (0,0) bis (0,max_y-offset)
 # die X-Achse geht per default von (0,0) bis (0,max_x-offset)
-#   für negative X-Werte wird sie "nach oben" geschoben
+# für negative Y-Werte wird die X-Achse "nach oben" geschoben
 # Feature: "Stauchung der Y-Achse von 0 bis min(y-werte)
     
 # Transformationen
@@ -80,10 +80,6 @@ sub drawCoordsystem{
 # transform="translate(30)"    # in x-Richtung 30 Punkte verschieben
 # transform="translate(30,40)" # in Richtung x=30, y=40 Punkte verschieben
 # transform="translate(30) rotate(45 50 50)" # erst drehen, dann verschieben
-
-## add a circle to the group
-#$svg->circle( cx => 200, cy => 100, r => 50, id => 'circle_in_group_y', 
-#    fill   => 'green' );
 
 }; # drawCoordsystem
 
@@ -221,7 +217,7 @@ sub drawYaxis{
 
     
     # --------------------
-    # Bemaßung X-Achse
+    # Bemaßung Y-Achse
     my $y_bemassung = $svg->group(
         id            => 'y_bemassung',
         'font-size'   => "10",

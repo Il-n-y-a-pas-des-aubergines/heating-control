@@ -46,7 +46,7 @@ sub drawBody($$$){
     my $title = 'Raumtemperatur - Aussentemperatur';
 
     # VIEW: Koordinatensystem und Kurven erstellen und ausgeben
-    Graph::drawCoordsystem($graph,$title , $minmax_ref, $minmaxTime);
+    Graph::drawCoordsystem($graph,$title , $minmaxData, $minmaxTime);
 
     # SVG Temp.Kurven für die gewünschten Elemente zeichnen
     #Graph::temperatur_kurven_zeichnen( $graph, $dataRows_ref, "raum_temp", "aussen_temp" );

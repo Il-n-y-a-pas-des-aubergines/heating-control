@@ -44,17 +44,16 @@ sub disconnectDb{
 }
 
 sub db_prepareStatements{
-    
     my $stm= 
-        "SELECT r.time, m.address, r.reading ".
-        "From t_mapping m join t_reading r on m.id=r.mapping_id ".
+        "SELECT r.time, r.reading, m.address, m.name ".
+        "from t_mapping m join t_reading r on m.id=r.mapping_id ".
         "where ? <= r.time and r.time < ? ORDER BY r.time";
     $DB_READ_SENSORDATA = $DBH->prepare($stm);
 }
 # ------------------------------------
 # alle Messwerte des Tages (=ab startzeitpunkt) einlesen
-# UNIX-TIME | ADDRESS | READING
-# secFrom1970 | HEX | 1=10^-2°C
+# UNIX-TIME | READING | ADDRESS | Name (Bezeichnung des Sensors)
+# secFrom1970 | 1=10^-2°C | HEX | TEXT
 sub db_readSensorData($$){
     my $startTime = shift;
     my $endTime = shift;
@@ -65,7 +64,7 @@ sub db_readSensorData($$){
 
     return $arr_ref;
 
-}; # messwerte_lesen
+}; # db_readSensorData
 
 # aus den Messwerten des Tages (s. messwerte_lesen) die Extremwerte ermitteln
 # Returns ref to arr (minVal, maxVal)
@@ -82,15 +81,15 @@ sub calculatExtremeValues($) {
         $maxVal = $row{'reading'} if ($row{'reading'} > $maxVal);
     }
 
-    # ensure at least a range between 0 and 30
+    # ensure at least a range between 0 and 30 °C
     $minVal = 0 if (0 < $minVal);
     $maxVal = 3000 if (3000 > $maxVal);
 
-    # degree values are in 1/100°C -> return in °C
+    # readings are in 100*°C -> return in °C
     my @result = ($minVal/100, $maxVal/100);
     
     return \@result;
 
-}; # extremwerte_ermitteln
+}; # calculatExtremeValues
 
 1;
