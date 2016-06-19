@@ -27,8 +27,9 @@ sub main(){
     # load data from db
     my $data_ref = Model::db_readSensorData($startTime, $endTime);
     my $minmax_ref = Model::calculatExtremeValues($data_ref);
+    my @minmaxTime = [$startTime, $endTime];
 
-    View::drawBody($minmax_ref, $data_ref);
+    View::drawBody($data_ref, $minmax_ref, \@minmaxTime);
 
     View::drawFooter();
 }

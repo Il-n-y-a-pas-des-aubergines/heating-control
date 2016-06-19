@@ -5,7 +5,7 @@ package View;
 # PROTOTYPES
 sub initialize();
 sub drawHeaderAndTitle(); 
-sub drawBody($$);
+sub drawBody($$$);
 sub drawFooter(); 
 sub drawPage($$);
 
@@ -32,18 +32,21 @@ sub drawPage($$){
     # CONTROLLER: CGI Seitenanfang ausgeben
     drawHeaderAndTitle();
     
-    drawBody(shift, shift);
+    drawBody(shift, shift, shift);
 
     # CGI Seitenende ausgeben
     drawFooter();
 } #drawPage
 
-sub drawBody($$){
-    my $minmax_ref = shift;
+sub drawBody($$$){
     my $dataRows_ref = shift;
+    my $minmaxData = shift;
+    my $minmaxTime = shift;
+    
+    my $title = 'Raumtemperatur - Aussentemperatur';
 
     # VIEW: Koordinatensystem und Kurven erstellen und ausgeben
-    Graph::drawCoordsystem($graph, 'Raumtemperatur - Aussentemperatur', $minmax_ref);
+    Graph::drawCoordsystem($graph,$title , $minmax_ref, $minmaxTime);
 
     # SVG Temp.Kurven für die gewünschten Elemente zeichnen
     #Graph::temperatur_kurven_zeichnen( $SVG, $dataRows_ref, "raum_temp", "aussen_temp" );

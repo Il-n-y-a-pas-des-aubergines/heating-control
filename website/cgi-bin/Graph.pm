@@ -57,16 +57,16 @@ sub init_svg($){
 sub drawCoordsystem{
     #print "drawCoordsystem param: @_<br />\n";
     my $graph = shift;
-    my $titel = shift;
+    my $title = shift;
     my $minMaxData_ref = shift;
-    #my $minMaxTime_ref = shift; 
+    my $minMaxTime_ref = shift; 
 
     #print "Min Max is : ";
     #print "@y_min_max";
     #print "\n";
     
     drawXaxis($graph);
-    drawYaxis($graph, $minMaxData_ref);
+    drawYaxis($graph, $minMaxData_ref, $title);
     # --------------------
     
 # mein Koordinatensstem:
@@ -74,8 +74,6 @@ sub drawCoordsystem{
 # die X-Achse geht per default von (0,0) bis (0,max_x-offset)
 #   für negative X-Werte wird sie "nach oben" geschoben
 # Feature: "Stauchung der Y-Achse von 0 bis min(y-werte)
-
-
     
 # Transformationen
 # transform="rotate(45 50 50)" # um 45° drehen um den Punkt (50,50)
@@ -91,6 +89,7 @@ sub drawCoordsystem{
 
 sub drawXaxis($$){
     my $graph = shift; 
+    my $minmaxTime = shift;
     
     my $AKT_CONF = $graph->{conf};
     my $svg = $graph->{svg};
@@ -111,7 +110,6 @@ sub drawXaxis($$){
         y           => $AKT_CONF->{y_00}-6,
         -cdata      => 'Zeit',
     );
-    
     
     # --------------------
     # Bemaßung Y-Achse
@@ -145,6 +143,7 @@ sub drawXaxis($$){
 sub drawYaxis{
     my $graph = shift;
     my $minMaxData_ref = shift;
+    my $title = shift;
     
     my $AKT_CONF = $graph->{conf};
     my $svg = $graph->{svg};
@@ -193,7 +192,7 @@ sub drawYaxis{
         'font-size' => "20",
         x      => $AKT_CONF->{x_00},
         y      => $AKT_CONF->{offset},
-        -cdata => "Temperatur: $titel",
+        -cdata => "Temperatur: $title",
     );
 
     
