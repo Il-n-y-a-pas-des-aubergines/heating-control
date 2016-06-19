@@ -61,15 +61,94 @@ sub drawCoordsystem{
     my $minMaxData_ref = shift;
     #my $minMaxTime_ref = shift; 
 
-    my $svg = $graph->{svg};
-    my $AKT_CONF = $graph->{conf};
-    my @y_min_max = @{$minMaxData_ref};
-
-    print "Min Max is : ";
-    print "@y_min_max";
-    print "\n";
+    #print "Min Max is : ";
+    #print "@y_min_max";
+    #print "\n";
+    
+    drawXaxis($graph);
+    drawYaxis($graph, $minMaxData_ref);
     # --------------------
-    # Vorbereitung Y-Achse
+    
+# mein Koordinatensstem:
+# die Y-Achse geht immer von (0,0) bis (0,max_y-offset)
+# die X-Achse geht per default von (0,0) bis (0,max_x-offset)
+#   für negative X-Werte wird sie "nach oben" geschoben
+# Feature: "Stauchung der Y-Achse von 0 bis min(y-werte)
+
+
+    
+# Transformationen
+# transform="rotate(45 50 50)" # um 45° drehen um den Punkt (50,50)
+# transform="translate(30)"    # in x-Richtung 30 Punkte verschieben
+# transform="translate(30,40)" # in Richtung x=30, y=40 Punkte verschieben
+# transform="translate(30) rotate(45 50 50)" # erst drehen, dann verschieben
+
+## add a circle to the group
+#$svg->circle( cx => 200, cy => 100, r => 50, id => 'circle_in_group_y', 
+#    fill   => 'green' );
+
+}; # drawCoordsystem
+
+sub drawXaxis($$){
+    my $graph = shift; 
+    
+    my $AKT_CONF = $graph->{conf};
+    my $svg = $graph->{svg};
+    # --------------------
+    # die X-Achse geht von
+    #   SVG(x_00, y_00) -> (max_x-offset, y_00)
+    $svg->line(
+        id => 'x_achse',
+        x1 =>  $AKT_CONF->{x_00},
+        y1 =>  $AKT_CONF->{y_00},
+        x2 =>  $AKT_CONF->{max_x}-$AKT_CONF->{offset},
+        y2 =>  $AKT_CONF->{y_00},
+    );
+    $svg->text(
+        id          => 'x_text',
+        'font-size' => "20",
+        x           => $AKT_CONF->{max_x}-$AKT_CONF->{offset}-40,
+        y           => $AKT_CONF->{y_00}-6,
+        -cdata      => 'Zeit',
+    );
+    
+    
+    # --------------------
+    # Bemaßung Y-Achse
+     my $x_bemassung = $svg->group(
+        id            => 'x_bemassung',
+        'font-size'   => "10",
+    );
+     
+    my $x0;
+    for (my $x=1; $x<=24; $x++) { 
+        ($x0,$y0) = ($AKT_CONF->{x_00}+30*$x, $AKT_CONF->{y_00});
+        # Striche senkrecht zur Achse
+        $x_bemassung->line(
+            id => "x$x",
+            x1 =>  $x0,
+            y1 =>  $y0-5,
+            x2 =>  $x0,
+            y2 =>  $y0+5,
+        );
+        # Beschriftung
+        $x_bemassung->text(
+            id     => "xtxt$x",
+            x      => $x0,
+            y      => $y0,
+            transform => "translate(-5,15) rotate(45 $x0 $y0)",
+            -cdata => "$x",
+        );
+    }
+}
+
+sub drawYaxis{
+    my $graph = shift;
+    my $minMaxData_ref = shift;
+    
+    my $AKT_CONF = $graph->{conf};
+    my $svg = $graph->{svg};
+    my @y_min_max = @{$minMaxData_ref};
 
     # y_min_max auf nächsten Int runden
     @y_min_max = ( int($y_min_max[0]), int($y_min_max[1]) );
@@ -97,34 +176,7 @@ sub drawCoordsystem{
     } else { 
         $AKT_CONF->{y_00} = $AKT_CONF->{y_00_default};
     }
-
-    # --------------------
     
-# mein Koordinatensstem:
-# die Y-Achse geht immer von (0,0) bis (0,max_y-offset)
-# die X-Achse geht per default von (0,0) bis (0,max_x-offset)
-#   für negative X-Werte wird sie "nach oben" geschoben
-# Feature: "Stauchung der Y-Achse von 0 bis min(y-werte)
-
-
-    # --------------------
-    # die X-Achse geht von
-    #   SVG(x_00, y_00) -> (max_x-offset, y_00)
-    $svg->line(
-        id => 'x_achse',
-        x1 =>  $AKT_CONF->{x_00},
-        y1 =>  $AKT_CONF->{y_00},
-        x2 =>  $AKT_CONF->{max_x}-$AKT_CONF->{offset},
-        y2 =>  $AKT_CONF->{y_00},
-    );
-    $svg->text(
-        id          => 'x_text',
-        'font-size' => "20",
-        x           => $AKT_CONF->{max_x}-$AKT_CONF->{offset}-40,
-        y           => $AKT_CONF->{y_00}-6,
-        -cdata      => 'Zeit',
-    );
-
     # --------------------
     # die Y-Achse geht von 
     #   SVG(x_00, y_00) -> SVG(x_00, offset)
@@ -144,52 +196,15 @@ sub drawCoordsystem{
         -cdata => "Temperatur: $titel",
     );
 
-# Transformationen
-# transform="rotate(45 50 50)" # um 45° drehen um den Punkt (50,50)
-# transform="translate(30)"    # in x-Richtung 30 Punkte verschieben
-# transform="translate(30,40)" # in Richtung x=30, y=40 Punkte verschieben
-# transform="translate(30) rotate(45 50 50)" # erst drehen, dann verschieben
-
-    # --------------------
-    # Hilfspunkt für Berechnungen
-    my ($x0,$y0);
-
+    
     # --------------------
     # Bemaßung X-Achse
-    my $x_bemassung = $svg->group(
-        id            => 'x_bemassung',
-        'font-size'   => "10",
-    );
-    for (my $x=1; $x<=24; $x++) { 
-        ($x0,$y0) = ($AKT_CONF->{x_00}+30*$x, $AKT_CONF->{y_00});
-        # Striche senkrecht zur Achse
-        $x_bemassung->line(
-            id => "x$x",
-            x1 =>  $x0,
-            y1 =>  $y0-5,
-            x2 =>  $x0,
-            y2 =>  $y0+5,
-        );
-        # Beschriftung
-        $x_bemassung->text(
-            id     => "xtxt$x",
-            x      => $x0,
-            y      => $y0,
-            transform => "translate(-5,15) rotate(45 $x0 $y0)",
-            -cdata => "$x",
-        );
-    }
-
-    # --------------------
-    # Bemaßung Y-Achse
-
-
     my $y_bemassung = $svg->group(
         id            => 'y_bemassung',
         'font-size'   => "10",
     );
     
-    $x0 = $AKT_CONF->{x_00};
+    my $x0 = $AKT_CONF->{x_00};
     # calculate last point at the bottom
     my $amountOfSteps = 
         int(($AKT_CONF->{y_00} - $AKT_CONF->{y_00_default}) / $y_step);
@@ -215,12 +230,7 @@ sub drawCoordsystem{
         $y0 -= $y_step;
         $y_value += $deltaY_data;
     }
-
-## add a circle to the group
-#$svg->circle( cx => 200, cy => 100, r => 50, id => 'circle_in_group_y', 
-#    fill   => 'green' );
-
-}; # drawCoordsystem
+}
 
 # SVG eine Temp.Kurve zeichnen
 sub kurve_zeichnen {
