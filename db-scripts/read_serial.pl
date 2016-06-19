@@ -101,7 +101,7 @@ sub skipDataTillInitMessage{
 sub readAndInsertData{
     while (1) {
         while (my $txt = <COM>) {
-            print($txt."\n");
+            print($txt);
             my @sensorData = extractAddressAndTemperature($txt);
             if (@sensorData){
                 my @filtered_data = filterSensordata(\@sensorData);
@@ -109,7 +109,7 @@ sub readAndInsertData{
                     my %s = %{$hash_ref};
                     db_insertNewData($s{'address'},$s{'reading'});
                 }
-                print "eine Zeile verarbeitet\n";
+                #print "eine Zeile verarbeitet\n";
             }
     
         }

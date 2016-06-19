@@ -36,7 +36,7 @@ char string16[17];
 const unsigned long max_delay_30sec = 30*1000; 
 
 // Verzögerung zwischen 2 Messungen
-const unsigned long loop_delay_min = 10;
+const unsigned long loop_delay_min = 5;
 
 // ----------------------------------
 void setup(void)
