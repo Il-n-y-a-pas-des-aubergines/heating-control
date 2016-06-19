@@ -112,7 +112,7 @@ sub drawXaxis($$){
     );
     
     # --------------------
-    # Bemaßung Y-Achse
+    # Bemaßung X-Achse
      my $x_bemassung = $svg->group(
         id            => 'x_bemassung',
         'font-size'   => "10",
@@ -138,6 +138,30 @@ sub drawXaxis($$){
             -cdata => "$x",
         );
     }
+}
+
+sub getTimestep{
+    my $startTime = shift;
+    my $endTime = shift; 
+    my $timeInterval = $endTime - $startTime;
+    
+    my $minute = 60;
+    my $hour = $minute * 60;
+    my $day = 24 * $hour;
+    my $month = 30 * $day;
+    my $year = 12 * $month;
+    return  ($timeInterval <  2 * $hour)   ?  5 * $minute : 
+            ($timeInterval <  4 * $hour)   ? 10 * $minute :
+            ($timeInterval < 13 * $hour)   ? 30 * $minute : 
+            ($timeInterval <  1 * $day )   ?  1 * $hour : 
+            ($timeInterval <  6 * $day )   ?  5 * $hour : 
+            ($timeInterval < 10 * $day )   ? 10 * $hour : 
+            ($timeInterval <  1 * $month ) ?  1 * $day :  
+            ($timeInterval <  5 * $month ) ?  5 * $day : 
+            ($timeInterval < 10 * $month ) ? 10 * $day : 
+            ($timeInterval < 30 * $month ) ?  1 * $month : 
+            ($timeInterval <150 * $month ) ?  5 * $month : 
+                                              1 * $year;
 }
 
 sub drawYaxis{

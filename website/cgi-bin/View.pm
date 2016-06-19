@@ -49,7 +49,7 @@ sub drawBody($$$){
     Graph::drawCoordsystem($graph,$title , $minmax_ref, $minmaxTime);
 
     # SVG Temp.Kurven für die gewünschten Elemente zeichnen
-    #Graph::temperatur_kurven_zeichnen( $SVG, $dataRows_ref, "raum_temp", "aussen_temp" );
+    #Graph::temperatur_kurven_zeichnen( $graph, $dataRows_ref, "raum_temp", "aussen_temp" );
         #my $elem = shift;       # SVG Element
         #my $ary_ref = shift;    # Werte aus der DB
         #my @elemente = @_;      # innen/aussen, puffer1-4, boiler1-4
