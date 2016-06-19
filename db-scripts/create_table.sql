@@ -6,13 +6,17 @@
 -- sqlite> .read create_table.sql
 -- sqlite> .schema
 
+drop table t_mapping;
+drop table t_reading;
+drop table t_logging;
+
 -- maps sensor ID (addrss) to it's description (name)
 create table if not exists t_mapping(
     id INTEGER primary key autoincrement,
     address TEXT not null,
     name TEXT not null,
-    valid_from INTEGER not null,
-    valid_to INTEGER
+    usage_from INTEGER not null,
+    usage_till INTEGER
 );
 
 -- stores the read sensor data

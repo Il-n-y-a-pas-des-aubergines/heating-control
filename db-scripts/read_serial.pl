@@ -208,19 +208,19 @@ sub db_connect{
 sub db_prepareStatements{
     # Insert new Reading 
     my $stm= 
-    "INSERT INTO t_reading VALUES (?,?,?,?)";
+    "INSERT INTO t_reading (id,mapping_id,time,reading) VALUES (?,?,?,?)";
     $DB_READING_INSERT_STATEMENT = $DBH->prepare($stm);
     # Insert new Mapping
     $stm= 
-    "INSERT INTO t_mapping VALUES (?,?,?,?,?)";
+    "INSERT INTO t_mapping (id,address,name,usage_from,usage_till) VALUES (?,?,?,?,?)";
     $DB_MAPPING_INSERT_STATEMENT = $DBH->prepare($stm);
     # Insert new Logging 
     $stm = 
-    "INSERT INTO t_logging VALUES (?,?,?,?,?)";
+    "INSERT INTO t_logging (id,timestamp,state,module,message) VALUES (?,?,?,?,?)";
     $DB_LOGGING_INSERT_STATEMENT = $DBH->prepare($stm);
     # Select ID, Address from Mapping
     $stm = 
-    "SELECT id,address FROM t_mapping WHERE address=? AND valid_to IS NULL";
+    "SELECT id,address FROM t_mapping WHERE address=? AND usage_till IS NULL";
     $DB_MAPPING_SELECT_ID_STATEMENT = $DBH->prepare($stm);
 }
 sub db_insertNewData{
@@ -260,10 +260,10 @@ sub db_insertNewMapping{
     my $id = undef;
     my $address = shift; 
     my $name = "<Sensor noch nicht zugeordnet>";
-    my $valid_from = time();
-    my $valid_to = undef;
+    my $usage_from = time();
+    my $usage_till = undef;
 
-    $DB_MAPPING_INSERT_STATEMENT->execute($id, $address, $name, $valid_from, $valid_to );
+    $DB_MAPPING_INSERT_STATEMENT->execute($id, $address, $name, $usage_from, $usage_till );
 }
 sub db_log{
     my $timestamp = time();
@@ -278,29 +278,15 @@ sub db_log{
     $module = "Read_Serial.".$module;
     my $state = $states[$log_level];
 
-    $DB_LOGGING_INSERT_STATEMENT->execute(undef, $timestamp, $module, $state, $msg); 
+    $DB_LOGGING_INSERT_STATEMENT->execute(undef, $timestamp, $state, $module, $msg); 
 }
 
 
 __END__
 
-#        open(my $fh, "<", "input.txt") 
-#    	or die "cannot open < input.txt: $!";
-
 
 #christian@linux-qo6d:~/Projekte/dir_ba_abr> cat /dev/ttyACM0
 
-
 #christian@linux-qo6d:~/Projekte/dir_ba_abr> file /dev/ttyACM0
 #/dev/ttyACM0: character special
-
-# Message Qeue oder Pipeline oder einfache datei ?
-
-# MODE is |- , the filename is interpreted as a command to which output is to be piped, 
-# and if MODE is -| , the filename is interpreted as a command that pipes output to us. 
-
-    open(ARTICLE, "-|", "caesar <$article")  # decrypt article
-        or die "Can't start caesar: $!";
-
-
 
