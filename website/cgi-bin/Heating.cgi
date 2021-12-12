@@ -3,6 +3,7 @@
 # 03.04.2015, C.A.Merz
 # file: sudo cp /home/christian/perl/heizung.cgi /srv/www/cgi-bin/
 
+use lib '/home/daniel/perl5/lib/perl5';
 use strict;
 use warnings;
 use Time::localtime;
